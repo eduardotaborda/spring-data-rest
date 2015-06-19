@@ -15,6 +15,7 @@
  */
 package org.springframework.data.rest.webmvc.config;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -695,6 +696,7 @@ public class RepositoryRestMvcConfiguration extends HateoasAwareSpringDataWebCon
 			implements Ordered {
 
 		private final int order;
+		private final Class<?> type;
 
 		/**
 		 * Creates a new {@link ResourceSupportHttpMessageConverter} with the given order.
@@ -704,6 +706,30 @@ public class RepositoryRestMvcConfiguration extends HateoasAwareSpringDataWebCon
 		public ResourceSupportHttpMessageConverter(int order) {
 			super(ResourceSupport.class);
 			this.order = order;
+			this.type = ResourceSupport.class;
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.http.converter.json.MappingJackson2HttpMessageConverter#canRead(java.lang.Class, org.springframework.http.MediaType)
+		 */
+		@Override
+		public boolean canRead(Class<?> clazz, MediaType mediaType) {
+			return type.isAssignableFrom(clazz) && super.canRead(mediaType);
+		}
+
+		/* 
+		 * (non-Javadoc)
+		 * @see org.springframework.http.converter.json.AbstractJackson2HttpMessageConverter#canRead(java.lang.reflect.Type, java.lang.Class, org.springframework.http.MediaType)
+		 */
+		@Override
+		public boolean canRead(Type type, Class<?> contextClass, MediaType mediaType) {
+
+			if (type instanceof Class) {
+				return super.canRead(((Class<?>) type), mediaType);
+			}
+
+			return super.canRead(type, contextClass, mediaType);
 		}
 
 		/* 
